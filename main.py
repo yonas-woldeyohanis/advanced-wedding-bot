@@ -30,7 +30,7 @@ dp = Dispatcher()
 async def cmd_start(message: types.Message):
     """Handles the /start command"""
     
-    # Clean, professional, pure Amharic welcome text
+    # Clean, professional, pure Amharic welcome message
     welcome_text = (
         "📖 <b>ምሳሌ 18:22</b>\n"
         "<i>«ሚስት የሚያገኝ መልካም ነገርን ያገኛል፤ ከእግዚአብሔርም ዘንድ ሞገስን ይቀበላል።»</i>\n\n"

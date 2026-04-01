@@ -7,7 +7,7 @@ def get_main_menu():
         # Row 1: Essential Info
         [KeyboardButton(text="📅 ፕሮግራም እና ቦታ"), KeyboardButton(text="📍 ካርታ (Location)")],
         
-        # Row 2: Visuals & Aesthetics
+        # Row 2: Visuals & Aesthetics haha
         [KeyboardButton(text="📸 የቅድመ-ጋብቻ ፎቶዎች"), KeyboardButton(text="👗 የአለባበስ ዘይቤ")],
         
         # Row 3: Engagement
