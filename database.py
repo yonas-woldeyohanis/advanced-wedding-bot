@@ -1,55 +1,61 @@
+import aiosqlite
 import os
-from motor.motor_asyncio import AsyncIOMotorClient
-from dotenv import load_dotenv
 
-load_dotenv()
-MONGO_URL = os.getenv("MONGO_URL")
+DB_PATH = "wedding.db"
 
-# Initialize MongoDB Client
-client = AsyncIOMotorClient(MONGO_URL)
-db = client['wedding_bot_db']
-
-# Collections
-users_collection = db['users']
-wishes_collection = db['wishes']
-
-# --- USER FUNCTIONS ---
+async def init_db():
+    """Creates the tables if they don't exist."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                full_name TEXT,
+                username TEXT,
+                remind_me INTEGER DEFAULT 0
+            )
+        """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS wishes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                full_name TEXT,
+                wish_text TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await db.commit()
 
 async def add_user(user_id, full_name, username):
-    """Saves a new user to the database or updates existing one."""
-    user_data = {
-        "_id": user_id,
-        "full_name": full_name,
-        "username": username,
-        "remind_me": False  # Default to false
-    }
-    # upsert=True means: If user exists, update. If not, create.
-    await users_collection.update_one({"_id": user_id}, {"$set": user_data}, upsert=True)
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT OR REPLACE INTO users (user_id, full_name, username) VALUES (?, ?, ?)",
+            (user_id, full_name, username)
+        )
+        await db.commit()
 
-async def toggle_reminder(user_id, status: bool):
-    """Sets whether the user wants to receive reminders."""
-    await users_collection.update_one({"_id": user_id}, {"$set": {"remind_me": status}})
+async def toggle_reminder(user_id, status: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("UPDATE users SET remind_me = ? WHERE user_id = ?", (status, user_id))
+        await db.commit()
+
+async def save_wish(user_id, full_name, wish_text):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT INTO wishes (user_id, full_name, wish_text) VALUES (?, ?, ?)",
+            (user_id, full_name, wish_text)
+        )
+        await db.commit()
 
 async def get_all_users():
-    """Returns a list of all user IDs (useful for Admin Broadcasts)."""
-    cursor = users_collection.find({}, {"_id": 1})
-    users = await cursor.to_list(length=10000)
-    return [u["_id"] for u in users]
-
-# --- WISHES (GUESTBOOK) FUNCTIONS ---
-
-async def save_wish(user_id, full_name, message_text):
-    """Saves a guestbook message."""
-    wish_data = {
-        "user_id": user_id,
-        "full_name": full_name,
-        "message": message_text,
-        "timestamp": os.urandom(4).hex() # Simple way to add unique ID or use datetime
-    }
-    await wishes_collection.insert_one(wish_data)
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT user_id FROM users") as cursor:
+            rows = await cursor.fetchall()
+            return [row[0] for row in rows]
+        
 
 async def get_all_wishes():
-    """Returns a list of all guestbook messages."""
-    cursor = wishes_collection.find({})
-    return await cursor.to_list(length=1000)
+    """Returns all wishes from the database for the report."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT full_name, wish_text, timestamp FROM wishes") as cursor:
+            return await cursor.fetchall()
 
