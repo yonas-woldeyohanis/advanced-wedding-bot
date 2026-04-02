@@ -17,7 +17,7 @@ from database import init_db, add_user, toggle_reminder, save_wish, get_all_user
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = 5873042615
+ADMIN_ID = os.getenv("ADMIN_ID")
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
@@ -50,10 +50,16 @@ async def cmd_start(message: types.Message, state: FSMContext):
     await state.clear()
     await add_user(message.from_user.id, message.from_user.first_name, message.from_user.username)
     welcome_text = (
-        "📖 <b>ምሳሌ 18:22</b>\n<i>«ሚስት የሚያገኝ መልካም ነገርን ያገኛል፤...»</i>\n\n"
-        "እንኳን ወደ <b>[ሙሽራ] እና [ሙሽሪት]</b> የሰርግ መረጃ መስጫ ቦት በሰላም መጡ! 😊 💍\n\n"
-        "እባክዎ ከታች ያሉትን ቁልፎች በመጫን ዝርዝር መረጃዎችን ያግኙ። 👇"
-    )
+    'ዓለም ከመፈጠሩ አስቀድሞ ከጊዜ ቀመር ግምጃ ቤት አንደኛው ዶሴ ተገለጠ። በውስጡ የብራና ፅሁፍ ተገልጦ አንዲህ ተነበበ።\n\n'
+    '"እነሆ ፍቅርሥላሴ ኃይሌ ከጎን አጥንቱ ማህሌት ፈለቀ ተገኝታለችና ሚስት ትሁነው፤ እርሱም ባል ይሁናት!" በቤተሰብ በወዳጅ ዘመዶቹ ዘንድም ታላቅ ደስታ ሆነ። አሁን ጊዜው ደረሰና ፈቃዱ ሊፈጸም ከደጅ ነው።\n\n'
+    '"ይህች ከእግዚአብሔር ዘንድ ሆነች፣ ለአይናችንም ድንቅ ናት።" መዝ 118፣23\n\n'
+    'ክቡራን ወዳጆቼ ፣ እናንተም የእግዚአብሔር ህዝቦች እና ሌሎችም ምስክሮች ባሉበት የቃል ኪዳን ስርዓት ስላለን እንዲገኙ ከሚነበብ ፊርማ ጋር በጌታ ፍቅር ጋብዞኖዎታል።\n\n'
+    'ለተሻለ ማብራርያ ቀጣይ ምርጫ ይንኩ!'
+)
+
+
+
+    
     await send_wedding_photo(message.chat.id, "assets/welcome.jpg", welcome_text, get_main_menu())
 
 @dp.message(Command("developer", "development"))
@@ -61,11 +67,10 @@ async def cmd_start(message: types.Message, state: FSMContext):
 async def cmd_developer(message: types.Message):
     """Professional developer info command with a photo."""
     dev_text = (
-        "👨‍💻 <b>ስለ ሲስተም አልሚው (Developer)</b>\n\n"
-        "ይህ የሰርግ ቦት ሲስተም የተገነባው በጥራት እና በዘመናዊ ቴክኖሎጂ ነው።\n\n"
+        "👨‍💻 <b>ስለ Bot ሰሪዉ (Developer)</b>\n\n"
         "ለራስዎ ወይም ለወዳጅዎ ሰርግ ተመሳሳይ ቦት ማሰራት ከፈለጉ:\n"
-        "📞 <b>ስልክ:</b> +2519........\n"
-        "💬 <b>ቴሌግራም:</b> @YourUsername\n"
+        "📞 <b>ስልክ:</b> +251996246990\n"
+        "💬 <b>ቴሌግራም:</b> @jonas_wjohn\n"
     )
     # This uses the same fast helper function as the other buttons
     await send_wedding_photo(message.chat.id, "assets/developer.jpg", dev_text, get_back_button())
@@ -107,27 +112,27 @@ async def back_to_menu_handler(callback: CallbackQuery, state: FSMContext):
 @dp.callback_query(F.data == "btn_program")
 async def handle_prog(callback: CallbackQuery):
     await callback.answer("ፕሮግራሙን በማዘጋጀት ላይ...")
-    text = ("📅 <b>የፕሮግራም ዝርዝር</b>\n\n📍 ስርዓተ ተክሊል፡ [ቦታ]\n⏰ 4:30\n\n📍 የምሳ ግብዣ፡ [ቦታ]\n⏰ 7:00")
+    text = ("📅 <b>የፕሮግራም ዝርዝር</b>\n\n📍 የቃልኪዳን ስነ-ስርዓት፡ [ቦታ]\n⏰ 4:30\n\n📍 የምሳ ግብዣ፡ [ቦታ]\n⏰ 7:00")
     await send_wedding_photo(callback.message.chat.id, "assets/program.jpg", text, get_back_button())
 
 @dp.callback_query(F.data == "btn_location")
 async def handle_loc(callback: CallbackQuery):
     await callback.answer("ካርታውን በማዘጋጀት ላይ...")
-    text = ("📍 <b>የአዳራሹ መገኛ</b>\n\n🔗 https://maps.google.com/...")
+    text = ("📍 <b>የአዳራሹ መገኛ</b>\n\n🔗 https://maps.app.goo.gl/QJjeeTcmUQPHCK3DA?g_st=it")
     await send_wedding_photo(callback.message.chat.id, "assets/map.jpg", text, get_back_button())
 
 @dp.callback_query(F.data == "btn_countdown")
 async def handle_countdown(callback: CallbackQuery):
     await callback.answer()
-    days = (datetime(2025, 9, 29) - datetime.now()).days
-    text = f"⏳ <b>ስንት ቀን ቀረው?</b>\n\nለታላቁ የሰርጋችን ቀን <b>{max(0, days)} ቀናት</b> ቀርተዋል! 🎉"
+    days = (datetime(2026, 5, 29) - datetime.now()).days
+    text = f"⏳ <b>ስንት ቀን ቀረው?</b>\n\nየሰርጋችን ቀን <b>{max(0, days)} ቀናት</b> ቀርተዋል! 🎉"
     await send_wedding_photo(callback.message.chat.id, "assets/countdown.jpg", text, get_back_button())
 
 @dp.callback_query(F.data == "btn_remind")
 async def handle_remind(callback: CallbackQuery):
     await callback.answer()
     await toggle_reminder(callback.from_user.id, 1)
-    await callback.message.answer("✅ <b>የማስታወሻ ደወል በርቷል!</b>", reply_markup=get_back_button())
+    await callback.message.answer("✅ <b>የማስታወሻ ደወል በርቷል! ቀኑ ሲቀርብ መልዕክት እንልካለን🙏</b>", reply_markup=get_back_button())
 
 @dp.callback_query(F.data == "btn_photos")
 async def handle_photos(callback: CallbackQuery):
@@ -148,7 +153,7 @@ async def handle_photos(callback: CallbackQuery):
         await callback.message.answer_photo(FSInputFile(os.path.join(gallery_path, p)), request_timeout=60)
         await asyncio.sleep(0.5)
     
-    await callback.message.answer("👆 ማዕከለ-ስዕላቱ ተጠናቋል።", reply_markup=get_back_button())
+    await callback.message.answer("👆👆👆 ", reply_markup=get_back_button())
 
 @dp.callback_query(F.data == "btn_wish")
 async def ask_for_wish(callback: CallbackQuery, state: FSMContext):
