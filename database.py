@@ -59,3 +59,11 @@ async def get_all_wishes():
         async with db.execute("SELECT full_name, wish_text, timestamp FROM wishes") as cursor:
             return await cursor.fetchall()
 
+
+async def count_users():
+    """Returns the total number of users in the database."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT COUNT(*) FROM users") as cursor:
+            row = await cursor.fetchone()
+            return row[0] if row else 0
+
