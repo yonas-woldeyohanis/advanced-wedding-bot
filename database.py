@@ -67,3 +67,10 @@ async def count_users():
             row = await cursor.fetchone()
             return row[0] if row else 0
 
+
+
+async def get_detailed_users():
+    """Returns all users with their IDs and Names for the list command."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT user_id, full_name, username FROM users") as cursor:
+            return await cursor.fetchall()

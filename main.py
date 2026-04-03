@@ -13,7 +13,7 @@ from aiohttp import web
 
 # Custom Imports
 from keyboards import get_main_menu, get_back_button
-from database import init_db, add_user, toggle_reminder, save_wish, get_all_users, get_all_wishes, count_users
+from database import init_db, add_user, toggle_reminder, save_wish, get_all_users, get_all_wishes, count_users, get_detailed_users
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -108,7 +108,30 @@ async def cmd_users_count(message: types.Message):
     count = await count_users()
     # We use a professional looking message
     await message.answer(f"📊 <b>የቦቱ ተጠቃሚዎች ጠቅላላ ብዛት:</b> {count}")
+@dp.message(Command("listusers"))
+async def cmd_list_all_users(message: types.Message):
+    """Lists every person who has ever started the bot."""
+    users = await get_detailed_users()
+    
+    if not users:
+        return await message.answer("❌ እስካሁን ምንም ተጠቃሚ የለም።")
 
+    # Create the list text
+    report = f"👥 የቦቱ ተጠቃሚዎች ዝርዝር (ጠቅላላ: {len(users)})\n"
+    report += "="*35 + "\n\n"
+    
+    for i, (uid, name, username) in enumerate(users, 1):
+        uname = f"@{username}" if username else "የለውም"
+        report += f"{i}. {name}\n   ID: {uid} | Username: {uname}\n"
+        report += "-"*20 + "\n"
+
+    # If the list is short (under 15 people), send it as a message
+    if len(users) < 15:
+        await message.answer(f"<b>{report}</b>")
+    else:
+        # If the list is long, send it as a clean text file
+        file_data = BufferedInputFile(report.encode('utf-8'), filename="bot_users_list.txt")
+        await message.answer_document(file_data, caption=f"✅ የ {len(users)} ተጠቃሚዎች ዝርዝር")
 
 @dp.message(Command("export"))
 async def cmd_export(message: types.Message):
