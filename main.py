@@ -170,11 +170,29 @@ async def back_to_menu_handler(callback: CallbackQuery, state: FSMContext):
 @dp.callback_query(F.data == "btn_program")
 async def handle_prog(callback: CallbackQuery):
     await callback.answer("በማዘጋጀት ላይ...")
-    text = (
-        "📅 <b>የፕሮግራም ዝርዝር</b>\n\n"
-        "📍 <b>የቃልኪዳን ስነ-ስርዓት፡</b>\nበሐዋሳ ፌዝ አርሜ ቤተክርስቲያን\n⏰ 4:30\n\n"
-        "📍 <b>የምሳ እና የኬክ ፕሮግራም፡</b>\nበጆሹዋ ኮምፔይን ኢትዮጲያ ሐዋሳ ሚኒስትሪ\n⏰ 7:00"
-    )
+    text =  """📅 <b>የሰርጉ ፕሮግራም ዝርዝር</b>
+
+🏠 <b>የማለዳ መርሐ-ግብር፡</b>
+⏰ 12:30 - 1:30 ➖ አጃቢዎች በሙሽራው ቤት ይገኛሉ
+🚗 1:30 - 2:30 ➖ ጉዞ ወደ ሙሽሪት ቤት 
+🚗 3:00 - 4:00 ➖ ጉዞ ወደ ፌዝ አርሚ ቤተ-ክርስቲያን
+
+💍 <b>የቃል-ኪዳን ስነ-ስርዓት፡</b>
+📍 <i>በሐዋሳ ፌዝ አርሜ ቤተክርስቲያን (Faith Army Church)</i>
+⏰ 6:00 - 6:30 ➖ የቃል ኪዳንና የቀለበት ፕሮግራም
+🚗 6:30 - 7:00 ➖ ጉዞ ወደ ምሳ ፕሮግራም
+🗺 <a href="https://maps.app.goo.gl/MxCg4Q5V5LndDAnD9?g_st=atm">ቦታውን በካርታ ለማግኘት እዚህ ይጫኑ (Google Map)</a>
+
+🍰 <b>የምሳ እና የኬክ ፕሮግራም፡</b>
+📍 <i>በጆሹዋ ኮምፔን ኢትዮጲያ ሐዋሳ ሚኒስትሪ (Joshua Campaign)</i>
+⏰ 8:00 - 10:00 ➖ የአምልኮ ፕሮግራም
+🍰 10:00 - 11:30 ➖ የኬክ ቆረሳ እና የምስጋና ፕሮግራም
+👋 11:30 - 12:00 ➖ እንግዶች ሙሽሮችን ይሰናበታሉ
+🗺 <a href="https://maps.app.goo.gl/uxk5y3mUR8mpkoFK7?g_st=atm">ቦታውን በካርታ ለማግኘት እዚህ ይጫኑ (Google Map)</a>"""
+
+
+
+
     await send_wedding_photo(callback.message.chat.id, "assets/program.jpg", text, get_back_button())
 
 @dp.callback_query(F.data == "btn_location")
