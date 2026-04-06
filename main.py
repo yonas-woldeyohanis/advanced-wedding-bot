@@ -17,9 +17,8 @@ from database import init_db, add_user, toggle_reminder, save_wish, get_all_user
 
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-# Safely convert ADMIN_ID to integer
+# Safely convert ADMIN_ID and SECONDARY_ADMIN_ID to integer
 ADMIN_ID = int(os.getenv("ADMIN_ID", 0))
-
 SECONDARY_ADMIN_ID = int(os.getenv("SECONDARY_ADMIN_ID", 0))
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
@@ -54,6 +53,7 @@ async def send_wedding_photo(chat_id, photo_path, caption, reply_markup=None):
 # ==========================================
 #           COMMAND HANDLERS
 # ==========================================
+
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
     await state.clear()
@@ -75,11 +75,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
         # 2. Notify Secondary Admin (Other person)
         try:
-            # We don't necessarily need to forward the profile twice, 
-            # just sending the text notification is enough and cleaner
             await bot.send_message(SECONDARY_ADMIN_ID, notify_text)
         except: pass
-    # ---------------------------
 
     welcome_text = (
         'ዓለም ከመፈጠሩ አስቀድሞ ከጊዜ ቀመር ግምጃ ቤት አንደኛው ዶሴ ተገለጠ። በውስጡ የብራና ፅሁፍ ተገልጦ አንዲህ ተነበበ።\n\n'
@@ -104,32 +101,23 @@ async def cmd_developer(message: types.Message):
 
 @dp.message(Command("users"))
 async def cmd_users_count(message: types.Message):
-    """Shows the total number of users who have started the bot."""
     count = await count_users()
-    # We use a professional looking message
     await message.answer(f"📊 <b>የቦቱ ተጠቃሚዎች ጠቅላላ ብዛት:</b> {count}")
+
 @dp.message(Command("listusers"))
 async def cmd_list_all_users(message: types.Message):
-    """Lists every person who has ever started the bot."""
     users = await get_detailed_users()
-    
     if not users:
         return await message.answer("❌ እስካሁን ምንም ተጠቃሚ የለም።")
 
-    # Create the list text
-    report = f"👥 የቦቱ ተጠቃሚዎች ዝርዝር (ጠቅላላ: {len(users)})\n"
-    report += "="*35 + "\n\n"
-    
+    report = f"👥 የቦቱ ተጠቃሚዎች ዝርዝር (ጠቅላላ: {len(users)})\n" + "="*35 + "\n\n"
     for i, (uid, name, username) in enumerate(users, 1):
         uname = f"@{username}" if username else "የለውም"
-        report += f"{i}. {name}\n   ID: {uid} | Username: {uname}\n"
-        report += "-"*20 + "\n"
+        report += f"{i}. {name}\n   ID: {uid} | Username: {uname}\n" + "-"*20 + "\n"
 
-    # If the list is short (under 15 people), send it as a message
     if len(users) < 15:
         await message.answer(f"<b>{report}</b>")
     else:
-        # If the list is long, send it as a clean text file
         file_data = BufferedInputFile(report.encode('utf-8'), filename="bot_users_list.txt")
         await message.answer_document(file_data, caption=f"✅ የ {len(users)} ተጠቃሚዎች ዝርዝር")
 
@@ -152,16 +140,12 @@ async def cmd_export(message: types.Message):
 
 @dp.callback_query(F.data == "btn_start")
 async def back_to_menu_handler(callback: CallbackQuery, state: FSMContext):
-    """Refined 'Back' logic: Deletes clutter and sends a SIMPLE menu."""
+    """NO DELETION: Appends a clean menu text below the current chat."""
     await callback.answer()
     await state.clear()
     
-    # 1. Delete the previous response message to keep the chat clean
-    try:
-        await callback.message.delete()
-    except: pass
+    # We REMOVED the delete() line here so chat history is preserved.
     
-    # 2. Send a simple, clean main menu without re-sending the long poem/photo
     await callback.message.answer(
         "<b>ዋናው ማውጫ</b>\nእባክዎ የሚፈልጉትን መረጃ ይምረጡ፡ 👇", 
         reply_markup=get_main_menu()
@@ -176,30 +160,28 @@ async def handle_prog(callback: CallbackQuery):
 ⏰ 12:30 - 1:30 ➖ አጃቢዎች በሙሽራው ቤት ይገኛሉ
 🚗 1:30 - 2:30 ➖ ጉዞ ወደ ሙሽሪት ቤት 
 🚗 3:00 - 4:00 ➖ ጉዞ ወደ ፌዝ አርሚ ቤተ-ክርስቲያን
+🗺 <a href="https://maps.app.goo.gl/MxCg4Q5V5LndDAnD9?g_st=atm">ቦታውን በካርታ ለማግኘት እዚህ ይጫኑ (Google Map)</a>
 
 💍 <b>የቃል-ኪዳን ስነ-ስርዓት፡</b>
 📍 <i>በሐዋሳ ፌዝ አርሜ ቤተክርስቲያን (Faith Army Church)</i>
 ⏰ 6:00 - 6:30 ➖ የቃል ኪዳንና የቀለበት ፕሮግራም
 🚗 6:30 - 7:00 ➖ ጉዞ ወደ ምሳ ፕሮግራም
-🗺 <a href="https://maps.app.goo.gl/MxCg4Q5V5LndDAnD9?g_st=atm">ቦታውን በካርታ ለማግኘት እዚህ ይጫኑ (Google Map)</a>
+
 
 🍰 <b>የምሳ እና የኬክ ፕሮግራም፡</b>
 📍 <i>በጆሹዋ ኮምፔን ኢትዮጲያ ሐዋሳ ሚኒስትሪ (Joshua Campaign)</i>
+🗺 <a href="https://maps.app.goo.gl/uxk5y3mUR8mpkoFK7?g_st=atm">ቦታውን በካርታ ለማግኘት እዚህ ይጫኑ (Google Map)</a>
 ⏰ 8:00 - 10:00 ➖ የአምልኮ ፕሮግራም
 🍰 10:00 - 11:30 ➖ የኬክ ቆረሳ እና የምስጋና ፕሮግራም
 👋 11:30 - 12:00 ➖ እንግዶች ሙሽሮችን ይሰናበታሉ
-🗺 <a href="https://maps.app.goo.gl/uxk5y3mUR8mpkoFK7?g_st=atm">ቦታውን በካርታ ለማግኘት እዚህ ይጫኑ (Google Map)</a>"""
-
-
-
-
+"""
     await send_wedding_photo(callback.message.chat.id, "assets/program.jpg", text, get_back_button())
 
 @dp.callback_query(F.data == "btn_location")
 async def handle_loc(callback: CallbackQuery):
     await callback.answer("ካርታዎችን በማዘጋጀት ላይ...")
     
-    # Church Location
+    # Location 1: Church
     text1 = (
         "📍 <b>Joshua Campaign Ethiopia Hawasa Office</b>\n\n"
         "🔗 https://maps.app.goo.gl/uxk5y3mUR8mpkoFK7?g_st=atm"
@@ -208,7 +190,7 @@ async def handle_loc(callback: CallbackQuery):
     
     await asyncio.sleep(0.5)
     
-    # Hotel Location
+    # Location 2: Hotel
     text2 = (
         "📍 <b>Faith Army Church Hawassa</b>\n\n"
         "🔗 https://maps.app.goo.gl/MxCg4Q5V5LndDAnD9?g_st=atm"
@@ -218,7 +200,7 @@ async def handle_loc(callback: CallbackQuery):
 @dp.callback_query(F.data == "btn_countdown")
 async def handle_countdown(callback: CallbackQuery):
     await callback.answer()
-    days = (datetime(2026, 5, 29) - datetime.now()).days
+    days = (datetime(2026, 5, 18) - datetime.now()).days
     text = f"⏳ <b>ስንት ቀን ቀረው?</b>\n\nየሰርጋችን ቀን <b>{max(0, days)} ቀናት</b> ቀርተዋል! 🎉"
     await send_wedding_photo(callback.message.chat.id, "assets/countdown.jpg", text, get_back_button())
 
@@ -259,7 +241,7 @@ async def ask_for_wish(callback: CallbackQuery, state: FSMContext):
 async def process_wish(message: types.Message, state: FSMContext):
     await save_wish(message.from_user.id, message.from_user.first_name, message.text)
     
-    # Notify admin
+    # Notify admins
     await bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
     await bot.send_message(ADMIN_ID, f"✅ <b>አዲስ መልዕክት ደርሷል!</b>\n👤 ከ: {message.from_user.first_name}")
     
