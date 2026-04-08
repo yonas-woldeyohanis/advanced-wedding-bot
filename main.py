@@ -197,6 +197,30 @@ async def handle_loc(callback: CallbackQuery):
     )
     await send_wedding_photo(callback.message.chat.id, "assets/map_hotel.jpg", text2, get_back_button())
 
+@dp.callback_query(F.data == "btn_coordinators")
+async def handle_coordinators(callback: CallbackQuery):
+    await callback.answer()
+    
+    text = (
+        "📞 <b>የአስተባባሪዎች ስም እና ስልክ ቁጥር</b>\n\n"
+        "1️⃣ <b>አንበሴ አበበ</b> - 0911724740 / 0916029963\n"
+        "2️⃣ <b>ጎበዛየው ፋንታ</b> - 0972587527\n"
+        "3️⃣ <b>አስመላሻ አበበ</b> - 0916823317 / 0916585831\n"
+        "4️⃣ <b>ቁምላቸው ካሱ</b> - 0916582133\n"
+        "5️⃣ <b>አለሙ ኤጂሶ</b> - 0911034921 / 0947559612\n\n"
+        "<i>ማንኛውም ጥያቄ ካለዎት እነዚህን ቁጥሮች መደወል ይችላሉ።</i>"
+    )
+    
+    # If you have a photo for this (like a group photo of coordinators), put it in assets/coordinators.jpg
+    img = "assets/coordinators.jpg"
+    if os.path.exists(img):
+        await send_wedding_photo(callback.message.chat.id, img, text, get_back_button())
+    else:
+        # If no image, just send the text
+        await callback.message.answer(text, reply_markup=get_back_button())
+
+        
+
 @dp.callback_query(F.data == "btn_countdown")
 async def handle_countdown(callback: CallbackQuery):
     await callback.answer()
