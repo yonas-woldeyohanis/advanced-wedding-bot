@@ -61,22 +61,20 @@ async def cmd_start(message: types.Message, state: FSMContext):
     # Save User to DB
     await add_user(message.from_user.id, message.from_user.first_name, message.from_user.username)
     
-    # --- NOTIFICATION LOGIC ---
-    # We notify both admins if the user is NOT one of the admins
+    # --- UPDATED NOTIFICATION LOGIC ---
+    # Only notify the Secondary Admin (You) if the user is a regular guest
     if message.from_user.id not in [ADMIN_ID, SECONDARY_ADMIN_ID]:
         user_link = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a>"
         notify_text = f"🆕 <b>አዲስ ተጠቃሚ ቦቱን ጀምሯል!</b>\n👤 <b>ስም:</b> {user_link}"
         
-        # 1. Notify Primary Admin (You)
         try:
-            await bot.forward_message(chat_id=ADMIN_ID, from_chat_id=message.chat.id, message_id=message.message_id)
-            await bot.send_message(ADMIN_ID, notify_text)
-        except: pass
-
-        # 2. Notify Secondary Admin (Other person)
-        try:
+            # Forward the profile to YOU (Secondary Admin)
+            await bot.forward_message(chat_id=SECONDARY_ADMIN_ID, from_chat_id=message.chat.id, message_id=message.message_id)
+            # Send the text alert to YOU (Secondary Admin)
             await bot.send_message(SECONDARY_ADMIN_ID, notify_text)
-        except: pass
+        except Exception as e:
+            logging.error(f"Secondary Admin notification failed: {e}")
+    # ----------------------------------
 
     welcome_text = (
         'ዓለም ከመፈጠሩ አስቀድሞ ከጊዜ ቀመር ግምጃ ቤት አንደኛው ዶሴ ተገለጠ። በውስጡ የብራና ፅሁፍ ተገልጦ አንዲህ ተነበበ።\n\n'
